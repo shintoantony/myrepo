@@ -1,0 +1,41 @@
+# Default value for vd-Core.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: inmbzp7148.in.dst.ibm.com:5000/vd-mysql-db
+  tag: icp-v1
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  httpPort: 8080
+  servicePort: 3306
+  #nodePort: 30002
+
+ingress:
+  enabled: false
+  path: /
+  hosts:
+    - vd-database.inmbzicp6119.in.dst.ibm.com
+  annotations: 
+    kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteMany
+  size: 10Gi
+
+resources:
+  limits:
+   cpu: 1
+   memory: 2Gi
+
+MYSQL_ROOT_PASSWORD:
+  value: vdService20db18
+
+MYSQL_DATABASE:
+  value: DISPATCH

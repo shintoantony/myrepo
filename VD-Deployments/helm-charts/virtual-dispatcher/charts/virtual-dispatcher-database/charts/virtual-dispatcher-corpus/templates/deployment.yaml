@@ -1,0 +1,49 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+           - name: http
+             containerPort: {{ .Values.service.httpPort }}
+             protocol: TCP
+           - name: service
+             containerPort: {{ .Values.service.servicePort }}
+             protocol: TCP
+          env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: {{ .Values.MYSQL_ROOT_PASSWORD.value }}
+          - name: MYSQL_DATABASE
+            value: {{ .Values.MYSQL_DATABASE.value }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+    {{- end }}
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: vd-db-corpus-bkp
+      volumes:
+        - name: vd-db-corpus-bkp
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | default (print (include "fullname" .)) }}
+          {{- else }}
+          {{- end }}

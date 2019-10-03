@@ -1,0 +1,11 @@
+
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.name | quote }}
+spec:
+ storageClassName: {{ .Values.storageClassName | quote }}
+ accessModes:
+    - {{ .Values.accessMode | quote }}
+ resources:
+   requests:
+     storage: {{ .Values.capacity | quote }}

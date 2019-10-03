@@ -1,0 +1,17 @@
+
+  replicaCount: 1
+  image:
+    repository: docker202020/java
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: NodePort
+    port: 2206 
+  ingress:
+    enabled: false
+    path: /
+    hosts:
+      -  java-connect.info
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"

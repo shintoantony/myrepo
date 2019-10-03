@@ -1,0 +1,29 @@
+{{- if and .Values.Training.persistence.enabled (not .Values.Training.persistence.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ template "fullname" . }}-training
+  labels:
+    app: {{ template "name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+{{- if .Values.Training.persistence.annotations }}
+  annotations:
+{{ toYaml .Values.Training.persistence.annotations | indent 4 }}
+{{- end }}
+spec:
+  accessModes:
+    - {{ .Values.Training.persistence.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.Training.persistence.size | quote }}
+{{- if .Values.Training.persistence.storageClass }}
+{{- if (eq "-" .Values.Training.persistence.storageClass) }}
+  storageClassName: ""
+{{- else }}
+  storageClassName: "{{ .Values.Training.persistence.storageClass }}"
+{{- end }}
+{{- end }}
+{{- end }}
+

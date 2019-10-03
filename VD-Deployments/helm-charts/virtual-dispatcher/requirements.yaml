@@ -1,0 +1,5 @@
+dependencies:
+  - name: virtual-dispatcher-database
+    version: 1.0.0
+    repository: charts/
+    alias: virtual-dispatcher-database

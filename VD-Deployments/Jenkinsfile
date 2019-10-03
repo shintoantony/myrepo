@@ -1,0 +1,49 @@
+pipeline {
+ agent { node { label 'dc-docker-agent' } }
+ environment {
+          def DOCKER_REGISTRY = sh(returnStdout: true, script: 'echo $DOCKER_REGISTRY').trim()
+          }
+ stages {
+     stage('Build Service Container') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dc-nexus-repo', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+      sh "docker login -u ${USERNAME} -p ${PASSWORD} ${DOCKER_REGISTRY}"
+      
+      echo "###########################################################"
+      echo "SCANNING DOCKERFILE FOR BEST PRACTICES USING DOCKERFILELINT"
+      echo "###########################################################"
+      sh "dockerfile_lint -f ${env.WORKSPACE}/docker-files/${env.DockerfileName}/Dockerfile -r ${env.WORKSPACE}/linter-rules/basic_rules.yaml > linterTestLogs.${env.BUILD_NUMBER}.txt "
+
+      echo "###################"
+      echo "SERVERSPEC TESTING"
+      echo "###################"
+      sh "cd ${env.WORKSPACE}/docker-files/${env.DockerfileName}/"
+      sh "rspec petclinicapp_spec.rb > serverspeclog.${env.BUILD_NUMBER}.txt" 
+
+      echo "####################"
+      echo "BUILDING DOCKERIMAGE"
+      echo "####################"
+      sh "docker build --pull -t ${DOCKER_REGISTRY}/${env.DockerfileName}:${env.BUILD_ID} --build-arg APPLICATION=${env.DockerfileName} --build-arg RELEASE=${VERSION} ."
+      sh "docker tag ${DOCKER_REGISTRY}/${env.DockerfileName}:${env.BUILD_ID} ${DOCKER_REGISTRY}/${env.DockerfileName}:latest"
+
+      echo "###########################################################"
+      echo "ANALYZING DOCKER IMAGE FOR CVE AND EXPOSURES USING ANCHORE"
+      echo "###########################################################"
+      sh "anchore analyze --image ${DOCKER_REGISTRY}/${env.DockerfileName}:${env.BUILD_ID} --imagetype base"
+      sh "anchore query --image {DOCKER_REGISTRY}/${env.DockerfileName}:${env.BUILD_ID} cve-scan all > anchoreLog.${env.BUILD_NUMBER}.txt "
+       }
+      }
+    }
+    
+  }
+
+  post {
+    success {
+      withCredentials([usernamePassword(credentialsId: 'dc-nexus-repo', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+        sh "docker login -u ${USERNAME} -p ${PASSWORD} ${DOCKER_REGISTRY}"
+        sh "docker push ${DOCKER_REGISTRY}/${env.DockerfileName}:${env.BUILD_ID}"
+        sh "docker push ${DOCKER_REGISTRY}/${env.DockerfileName}:latest"
+      }
+    }
+  }
+}

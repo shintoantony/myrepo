@@ -1,0 +1,2 @@
+CREATE TABLE STATUS_INFO (status varchar(100));
+INSERT INTO STATUS_INFO VALUES ('success');

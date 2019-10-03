@@ -1,0 +1,18 @@
+# Application 
+app: 
+  db: jdbc:mysql://vd-prod-virtual-dispatcher-database:3306/DISPATCH?autoReconnect=true&useSSL=false
+  db_passcode: vdService20db18
+  db_username: root
+  report_db: jdbc:db2://inmbzp4219.in.dst.ibm.com:60001/report
+  report_db_passcode: passw0rd
+  report_db_username: vdusr
+  corpus_db: jdbc:mysql://vd-prod-virtual-dispatcher-corpus:3306/CORPUS?autoReconnect=true&useSSL=false 
+  corpus_db_username: root
+  corpus_db_passcode: vdCorpus20db18
+  corpus_db_driver: com.mysql.jdbc.Driver  
+  
+# Server
+server: 
+  port: 2025
+
+

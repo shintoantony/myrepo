@@ -1,0 +1,79 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}-backup
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.Backup.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.Backup.image.repository }}:{{ .Values.Backup.image.tag }}"
+          imagePullPolicy: {{ .Values.Backup.image.pullPolicy }}
+#          ports:
+#            - name: http
+#              containerPort: {{ .Values.Core.service.httpPort }}
+#              protocol: TCP
+#            - name: service
+#              containerPort: {{ .Values.Core.service.servicePort }}
+#              protocol: TCP 
+#            - name: icd
+#              containerPort: {{ .Values.Core.service.icdPort }}
+#              protocol: TCP
+#            - name: reportdb
+#              containerPort: {{ .Values.Core.service.reportdbPort }}
+#              protocol: TCP
+#            - name: icddb
+#              containerPort: {{ .Values.Core.service.icddbPort }}
+#              protocol: TCP
+          env:
+            {{- range $key, $value := .Values.extraEnv }}
+            - name: {{ $key }}
+              value: {{ $value }}
+            {{- end }}
+            - name: BACKUP_VD
+              value: {{.Values.Backup.env.BACKUP_VD | quote }}
+            - name: DBTYPE
+              value: {{.Values.Backup.env.DBTYPE | quote }}
+            - name: USER
+              value: {{.Values.Backup.env.USER | quote }}
+            - name: PASS
+              value: {{.Values.Backup.env.PASS | quote }}
+            - name: HOST
+              value: {{.Values.Backup.env.HOST | quote }}
+            - name: DBNAME
+              value: {{.Values.Backup.env.DBNAME | quote }}
+            - name: API_KEY
+              value: {{.Values.Backup.env.API_KEY | quote }}
+            - name: FNAME
+              value: {{.Values.Backup.env.FNAME | quote }}
+          resources:
+{{ toYaml .Values.Core.resources | indent 12 }}
+    {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+    {{- end }}
+          volumeMounts:
+           - mountPath: /mnt/core
+             name: vd-core-bkp
+#             subPath: core
+           - mountPath: /mnt/training
+             name: vd-training-bkp
+#             subPath: training
+      volumes:
+        - name: vd-core-bkp
+          persistentVolumeClaim:
+            claimName: {{ .Values.Core.persistence.existingClaim | default (print (include "fullname" .)) }}-core
+        - name: vd-training-bkp
+          persistentVolumeClaim:
+            claimName: {{ .Values.Training.persistence.existingClaim | default (print (include "fullname" .)) }}-training
+#            claimName: vd-dev-virtual-dispatcher-training 

@@ -1,0 +1,4 @@
+com\ibm\vd\reports\service\DataService.class
+com\ibm\vd\reports\utils\Config.class
+com\ibm\vd\reports\VDReportApplication.class
+com\ibm\vd\reports\controller\VDReportController.class

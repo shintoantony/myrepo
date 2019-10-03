@@ -1,0 +1,47 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}-training
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.Training.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.Training.image.repository }}:{{ .Values.Training.image.tag }}"
+          imagePullPolicy: {{ .Values.Training.image.pullPolicy }}
+          ports:
+           - name: http
+             containerPort: {{ .Values.Training.service.httpPort }}
+             protocol: TCP
+           - name: service
+             containerPort: {{ .Values.Training.service.servicePort }}
+             protocol: TCP
+           - name: reportdb
+             containerPort: {{ .Values.Training.service.reportdbPort }}
+             protocol: TCP
+          resources:
+{{ toYaml .Values.Training.resources | indent 12 }}
+    {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+    {{- end }}        
+          volumeMounts:
+           - mountPath: /vdbkp
+             name: vd-training-bkp
+      volumes:
+        - name: vd-training-bkp
+          {{- if .Values.Training.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.Training.persistence.existingClaim | default (print (include "fullname" .)) }}-training
+          {{- else }}
+          {{- end }}

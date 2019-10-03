@@ -1,0 +1,84 @@
+# Default values for virtual-dispatcher.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+
+# Virtual Dispatcher Training Module
+Training:
+  replicaCount: 1
+  image:
+    repository: inmbzp7148.in.dst.ibm.com:5000/vd-training
+    tag: icp-v1.1
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    httpPort: 8080
+    servicePort: 2025
+    reportdbPort: 60001
+  ingress:
+    enabled: true
+    path: /
+    hosts:
+      -  vd-training.innovatecloud.dst.ibm.com
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    tls:
+      # Secrets must be manually created in the namespace.
+      # - secretName: chart-example-tls
+      #   hosts:
+      #     - chart-example.local
+  persistence:
+    enabled: true
+    accessMode: ReadWriteMany
+    size: 5Gi
+  resources:
+    limits:
+     cpu: 1
+     memory: 2Gi
+
+# Virtual Dispatcher Core Module
+Core:
+  replicaCount: 1
+  image:
+    repository: inmbzp7148.in.dst.ibm.com:5000/vd-core
+    tag: icp-v1.1
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    httpPort: 8080
+    servicePort: 2026
+    icdPort: 443
+    reportdbPort: 60001
+    icddbPort: 60000
+  ingress:
+    enabled: false
+  persistence:
+    enabled: true
+    accessMode: ReadWriteMany
+    size: 5Gi
+  resources:
+    limits:
+     cpu: 1
+     memory: 4Gi
+
+Backup:
+  replicaCount: 1
+  image:
+    repository: inmbzp7148.in.dst.ibm.com:5000/vd-backup-k8
+    tag: v4
+    pullPolicy: IfNotPresent
+  env:
+    BACKUP_VD: "true"
+    DBTYPE: Mysql
+    USER: root
+    PASS: vdService20db18
+    HOST: vd-dev-virtual-dispatcher-database
+    DBNAME: --all-databases
+    API_KEY: AKCp5bAt5qDE4zCqTLb8nnN3W2px6wZjcadX4M65PCU2vBX9ukTJyh2gcTsXQDxR18RVBwYks
+    FNAME:  virtual-dispatcher
+  resources:
+    limits:
+     cpu: 1
+     memory: 4Gi
+

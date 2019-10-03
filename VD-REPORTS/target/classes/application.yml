@@ -1,0 +1,10 @@
+# Application 
+app:  
+  db: jdbc:mysql://vd-prod-virtual-dispatcher-database:3306/DISPATCH?autoReconnect=true&useSSL=false
+  db_passcode: vdService20db18
+  db_username: root
+  db_driver: com.mysql.jdbc.Driver
+
+# Server
+server: 
+     port: 2028
